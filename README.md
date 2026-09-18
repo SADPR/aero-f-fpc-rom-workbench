@@ -26,6 +26,7 @@ for 2D unsteady laminar viscous flow past a cylinder ($Re=100$).
 - [Manifold File Semantics](#manifold-file-semantics)
 - [Trainer Notes (Tunable)](#trainer-notes-tunable)
 - [ParaView (.exo)](#paraview-exo)
+- [Reproducibility](#reproducibility)
 - [Troubleshooting](#troubleshooting)
 - [Repository Note](#repository-note)
 
@@ -1033,6 +1034,61 @@ bash postprocess_paraview.sh
 cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_gp.9999.01
 bash postprocess_paraview.sh
 ```
+
+## Reproducibility
+
+Three things in this workflow were nondeterministic, and all three moved the
+reported errors of the local models by tens of percent between runs. They are
+now seeded, so a rerun reproduces its predecessor exactly.
+
+| Source | Where | Seeded by |
+| --- | --- | --- |
+| k-means++ cluster initialization | AERO-F seeds it from `time(nullptr)` | `KMeansRandomSeed = 42` under `ConstructROB/StateROB/Clustering` in the five `run.offline_local*/FluidFile` decks |
+| ANN shuffle, split and weight init | `prom-ann-trainer.py` set no seed at all | `--seed` (or `TRAINER_SEED`), default 42 |
+| GP hyperparameter restarts | `n_restarts_optimizer=4` with no `random_state` | `random_state=42` in both `prom-gp-trainer_*.py` |
+
+Only the POD decks need the clustering seed: every `FluidFile_*hyper` sets
+`UseExistingClusters = True` and so reuses the partition from the POD step.
+
+Two consequences worth knowing:
+
+- With the seed, all five local families produce the *same* partition
+  (167 / 298 / 289 snapshots). Without it each family drew its own, so
+  comparing local families with one another conflated the choice of manifold
+  with a different clustering.
+- `PODMethod = RSVD` is a misnomer and needs no seed. `VecSet::RSVD` is
+  Gram-Schmidt QR followed by an SVD of the small R factor, with no random
+  matrix, so the POD basis was always deterministic.
+
+Verified by running a family twice: the per-cluster `state.coords`,
+`state.index` and `traced_model.pt` all match by md5, and the error-summary
+CSVs are byte identical.
+
+### What is *not* reproducible: timings
+
+Wall-clock times are only as good as the machine is quiet. The same stage,
+producing bit-identical output, has varied by a factor of 3 to 7 here
+(`loc.hrom` at 12.66, 17.61 and 5.26 s) when another job was competing for
+cores. Treat the accuracy columns as exact and the speedup columns as
+indicative until they are measured on a dedicated machine.
+
+### Summary table
+
+`simulations/summarize_runs.py` collects the comparison the Burgers campaign
+reports (`n`, `n_bar`, ECSW sample nodes, online time, speedup over the HDM,
+and the drag/lift relative L2 errors) by parsing artifacts the pipeline has
+already written. It runs no solver.
+
+```bash
+python3 simulations/summarize_runs.py            # reads pipeline_logs/
+python3 simulations/summarize_runs.py --logs pipeline_logs_run1
+```
+
+Note that on this mesh the reduced *mesh* is not small (6853 of 7100 nodes,
+all 15791 elements): the connectivity layers needed for reconstruction cover
+almost everything. The meaningful reduction measure is the ECSW sample node
+count, 53 to 336 depending on the model.
+
 
 ## Troubleshooting
 
