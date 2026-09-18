@@ -73,7 +73,8 @@ def main():
     # Uncomment the following line to **add WhiteKernel (observation noise)**
     # kernel += WhiteKernel(noise_level=1e-5, noise_level_bounds=(1e-5, 1e-1))
 
-    gp = GaussianProcessRegressor(kernel=kernel, alpha=1e-8, n_restarts_optimizer=4)
+    gp = GaussianProcessRegressor(kernel=kernel, alpha=1e-8, n_restarts_optimizer=4,
+                                  random_state=42)
     gp.fit(X_train, Y_train)
 
     end_time = time.time()

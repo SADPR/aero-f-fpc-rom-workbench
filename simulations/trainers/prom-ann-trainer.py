@@ -1,4 +1,5 @@
 import argparse
+import os
 import numpy as np
 import torch
 import torch.nn as nn
@@ -151,7 +152,17 @@ def main():
     parser.add_argument('output_size', type=int, help='Output size of the model')
     parser.add_argument('--skip_columns', type=int, default=0, help='Number of columns in the specified data_file to skip. Default is 0 based on AERO-F output.')
     parser.add_argument('--skip_rows', type=int, default=0, help='Number of rows in the specified data_file to skip. Default is 0 based on AERO-F output.')
+    parser.add_argument('--seed', type=int,
+                        default=int(os.environ.get('TRAINER_SEED', '42')),
+                        help='RNG seed for numpy and torch. Without it the '
+                             'shuffle, the train/test split and the weight '
+                             'initialisation all vary run to run, which makes '
+                             'the resulting ROM errors irreproducible.')
     args = parser.parse_args()
+
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    print(f'[Info] seeded numpy and torch with {args.seed}')
 
     # Load data
     data = np.loadtxt(args.data_file, skiprows=args.skip_rows, delimiter=',')

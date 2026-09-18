@@ -37,6 +37,10 @@ under NonlinearRomPreprocessing {
       under Clustering {
         KMeansMaxIterations = 150;
         PercentOverlap = 10;
+        // Without this, k-means++ seeds from time(nullptr) and every run
+        // gets a different partition, which moves the reported error by
+        // tens of percent. See NonlinearRomClustering.C.
+        KMeansRandomSeed = 42;
       }
       under DataCompression {
         ComputePOD = True;
