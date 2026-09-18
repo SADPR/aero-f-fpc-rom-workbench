@@ -78,3 +78,7 @@ reference/**
 
 # Per-stage logs written by run_full_pipeline.sh
 pipeline_logs/
+
+# Python bytecode
+__pycache__/
+*.pyc
