@@ -79,3 +79,6 @@ xp2exo_bundle.tgz
 
 # Downloaded external reference material
 reference/**
+
+# Per-stage logs written by run_full_pipeline.sh
+pipeline_logs/
