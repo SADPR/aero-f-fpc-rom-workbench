@@ -1,8 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-AEROF=/home/kratos/aero-f/build_full/bin/aerof.opt
-NP="${NP:-8}" # number of mpi processes
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/env.sh"
 
 ./clean_offline_preprocessing_outputs.sh
 

@@ -1,6 +1,6 @@
 #!/bin/bash
-PARTNMESH_EXECUTABLE=/home/kratos/aero-f_rom_turorial/partnmesh
-SOWER_EXECUTABLE=/home/kratos/aero-f_rom_turorial/sower
+
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
 
 # Specify number of subdomains, processes, clusters
 NSUB=8
@@ -10,7 +10,6 @@ NC=$NSUB
 DIR=data
 # Create output directory if missing
 mkdir -p "$DIR"
-
 
 # Decompose fluid mesh
 $PARTNMESH_EXECUTABLE sources/domain.top "$NSUB"

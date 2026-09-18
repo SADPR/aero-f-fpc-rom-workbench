@@ -1,8 +1,9 @@
 #!/bin/bash
 
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/env.sh"
+
 # convert .msh to .top
 /home/pavery/bin/gmsh2top domain
 
 # convert .top to .exo
-/home/kratos/aero-f_rom_turorial/xp2exo domain.top domain.exo
-
+"$XP2EXO_EXECUTABLE" domain.top domain.exo

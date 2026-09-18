@@ -1,8 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-AEROF="${AEROF:-/home/kratos/aero-f/build_full/bin/aerof.opt}"
-NP="${NP:-8}"
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/env.sh"
 
 ./clean_hrom_local_run_outputs.sh
 mkdir -p log references postpro results

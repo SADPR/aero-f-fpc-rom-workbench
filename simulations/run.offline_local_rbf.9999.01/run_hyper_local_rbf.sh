@@ -1,8 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-AEROF="${AEROF:-/home/kratos/aero-f/build_full/bin/aerof.opt}"
-NP="${NP:-8}"
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/env.sh"
 
 shopt -s nullglob
 cluster_dirs=(nonlinearrom/cluster*)

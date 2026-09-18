@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/env.sh"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TRAINERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/trainers"
 GP_TRAINER="${GP_TRAINER:-$TRAINERS_DIR/prom-gp-trainer_std.py}"
@@ -61,7 +63,7 @@ for cdir in "${cluster_dirs[@]}"; do
   echo "[$(basename "$cdir")] trainer: $GP_TRAINER (p=$GP_INPUT_SIZE, s=$cluster_output)"
   (
     cd "$cdir"
-    python3 "$GP_TRAINER" --data_file s.coords --input_size "$GP_INPUT_SIZE" --output_size "$cluster_output" |& tee log_gp_training.out
+    "$PYTHON" "$GP_TRAINER" --data_file s.coords --input_size "$GP_INPUT_SIZE" --output_size "$cluster_output" |& tee log_gp_training.out
   )
 
   for req in gp_precomputations.txt gp_xTrain.txt gp_stdscaling.txt gp_hyper.txt; do

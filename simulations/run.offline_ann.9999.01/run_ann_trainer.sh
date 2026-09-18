@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/env.sh"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLUSTER_DIR="$SCRIPT_DIR/nonlinearrom/cluster0"
 TRAINERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/trainers"
@@ -53,7 +55,7 @@ echo "Training ANN manifold with input=${ANN_INPUT_SIZE}, output=${cluster_outpu
 echo "Using trainer: $ANN_TRAINER"
 
 cd "$CLUSTER_DIR"
-python3 "$ANN_TRAINER" s.coords "$ANN_INPUT_SIZE" "$cluster_output" |& tee log_ann_training.out
+"$PYTHON" "$ANN_TRAINER" s.coords "$ANN_INPUT_SIZE" "$cluster_output" |& tee log_ann_training.out
 
 if [[ ! -f traced_model.pt ]]; then
   echo "ERROR: ANN training finished but traced_model.pt was not created."

@@ -1,8 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-PARTNMESH_EXECUTABLE=/home/kratos/aero-f_rom_turorial/partnmesh
-SOWER_EXECUTABLE=/home/kratos/aero-f_rom_turorial/sower
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
 
 NSUB=8
 

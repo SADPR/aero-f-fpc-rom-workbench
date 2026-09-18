@@ -1,8 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-AEROF="${AEROF:-/home/kratos/aero-f/build_full/bin/aerof.opt}"
-NP=8 # number of mpi processes
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/env.sh"
 
 if strings "$AEROF" | grep -q "USE_TORCH is not defined"; then
   echo "ERROR: $AEROF was built without Torch support."

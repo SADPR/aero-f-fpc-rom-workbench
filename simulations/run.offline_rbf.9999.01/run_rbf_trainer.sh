@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/env.sh"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLUSTER_DIR="$SCRIPT_DIR/nonlinearrom/cluster0"
 TRAINERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/trainers"
@@ -38,7 +40,7 @@ fi
 
 echo "Using trainer: $RBF_TRAINER (p=$RBF_P_SIZE, s=$((total_cols - RBF_P_SIZE)))"
 cd "$CLUSTER_DIR"
-RBF_P_SIZE="$RBF_P_SIZE" python3 "$RBF_TRAINER" |& tee log_rbf_training.out
+RBF_P_SIZE="$RBF_P_SIZE" "$PYTHON" "$RBF_TRAINER" |& tee log_rbf_training.out
 
 for req in rbf_precomputations.txt rbf_xTrain.txt rbf_stdscaling.txt rbf_hyper.txt; do
   if [[ ! -f "$req" ]]; then

@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/env.sh"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TRAINERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/trainers"
 ANN_TRAINER="${ANN_TRAINER:-$TRAINERS_DIR/prom-ann-trainer.py}"
@@ -61,7 +63,7 @@ for cdir in "${cluster_dirs[@]}"; do
   echo "[$(basename "$cdir")] trainer: $ANN_TRAINER (p=$ANN_INPUT_SIZE, s=$cluster_output)"
   (
     cd "$cdir"
-    python3 "$ANN_TRAINER" s.coords "$ANN_INPUT_SIZE" "$cluster_output" |& tee log_ann_training.out
+    "$PYTHON" "$ANN_TRAINER" s.coords "$ANN_INPUT_SIZE" "$cluster_output" |& tee log_ann_training.out
   )
 
   if [[ ! -f "$cdir/traced_model.pt" ]]; then

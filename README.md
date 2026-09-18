@@ -59,29 +59,52 @@ with:
 
 ## Common Setup
 
-Local defaults:
-- `partnmesh`: `/home/kratos/aero-f_rom_turorial/partnmesh`
-- `sower`: `/home/kratos/aero-f_rom_turorial/sower`
-- `aerof`: `/home/kratos/aero-f/build_full/bin/aerof.opt`
-- default local MPI size in scripts: `8` (override with `NP=16 ...` if desired)
-- note: replace `/home/kratos/aero-f_rom_turorial` with your own local repository path.
+All tool locations live in a single file, `env.sh`, which every script sources.
+To run this workbench on another machine, edit only that file.
+
+| Variable | Default |
+| --- | --- |
+| `AEROF` | `/home/sares/aero-f/build_local/bin/aerof.opt` |
+| `SOWER_EXECUTABLE` | `$REPO_ROOT/sower` |
+| `PARTNMESH_EXECUTABLE` | `$REPO_ROOT/partnmesh` |
+| `XP2EXO_EXECUTABLE` | `$REPO_ROOT/xp2exo_bundle/xp2exo` |
+| `PYTHON` | `/home/sares/aero-f/.venv_torch_cpu/bin/python` |
+| `NP` | `8` |
+
+Any value can be overridden per invocation, for example `NP=16 bash run_fom.sh`.
+
+`PYTHON` must be an interpreter providing torch, scikit-learn, matplotlib and
+tensorboard; the system `python3` does not have them, so the manifold trainers
+will fail if it is used.
+
+`AEROF` is built from the AERO-F source tree with:
+
+```bash
+cd /home/sares/aero-f
+bash scripts/configure_torch_local.sh
+cmake --build build_local -j$(nproc)
+```
+
+The build needs `libarpack2-dev libparpack2-dev libarpack++2-dev libmetis-dev
+libparmetis-dev`, and `SPLH/SCMatrix/scpblas.h` must define `AFN_` instead of
+`N_` (the macro collides with the Torch headers).
 
 Common data-generation steps (run once):
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 
 # Mesh preprocessing
 ./clean_preprocess_outputs.sh
 bash preprocess.sh
 
 # Startup run
-cd /home/kratos/aero-f_rom_turorial/simulations/run.fom.startup
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.fom.startup
 ./clean_startup_run_outputs.sh
 bash run_startup.sh
 
 # FOM snapshots
-cd /home/kratos/aero-f_rom_turorial/simulations/run.fom
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.fom
 ./clean_fom_run_outputs.sh
 bash run_fom.sh
 ```
@@ -92,30 +115,30 @@ Reference linear workflow (default retained size in this branch):
 
 ```bash
 # Offline POD
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline.9999.01
 ./clean_offline_preprocessing_outputs.sh
 bash run_pod.sh
 
 # Optional: online linear ROM
-#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom.9999
+#cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom.9999
 #./clean_rom_run_outputs.sh
 #bash run_rom.sh
 
 # Hyper-reduction artifacts (ECSW)
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline.9999.01
 bash run_hyper.sh
 
 # HROM preprocess
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 bash preprocess.hrom.sh
 
 # HROM online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.hrom.9999.01
 ./clean_hrom_run_outputs.sh
 bash run_hrom.sh
 
 # HROM postprocessing
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom.9999.01
 ./clean_post_hrom_run_outputs.sh
 bash run_post_hrom.sh
 ```
@@ -123,7 +146,7 @@ bash run_post_hrom.sh
 Quick plot vs HDM for this section:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_35_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
@@ -140,32 +163,32 @@ Current local branch files are set to `NumClusters = 3`.
 
 ```bash
 # 1) Offline local POD
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local.9999.01
 ./clean_offline_local_preprocessing_outputs.sh
 bash run_pod_local.sh
 
 # 2) Build local ECSW artifacts
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local.9999.01
 ./clean_offline_local_hyper_outputs.sh
 bash run_hyper_local.sh
 
 # 3) HROM-local preprocess (splits all cluster bases/references)
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 ./clean.hrom_local.sh
 bash preprocess.hrom_local.sh
 
 # 4) Optional: local ROM online
-#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local.9999
+#cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_local.9999
 #./clean_rom_local_run_outputs.sh
 #bash run_rom_local.sh
 
 # 5) Local HROM online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_local.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.hrom_local.9999.01
 ./clean_hrom_local_run_outputs.sh
 bash run_hrom_local.sh
 
 # 6) Local HROM postprocessing
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_local.9999.01
 ./clean_post_hrom_local_run_outputs.sh
 bash run_post_hrom_local.sh
 ```
@@ -173,7 +196,7 @@ bash run_post_hrom_local.sh
 Quick plot vs HDM for this section:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_local_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
@@ -189,32 +212,32 @@ This is the **nonlocal quadratic** workflow (single cluster, no local clustering
 
 ```bash
 # 1) Offline quadratic POD + quadratic manifold data
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_quad.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_quad.9999.01
 ./clean_offline_preprocessing_outputs.sh
 bash run_pod_quad.sh
 
 # 2) Build ECSW artifacts for quadratic manifold
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_quad.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_quad.9999.01
 ./clean_offline_quad_hyper_outputs.sh
 bash run_hyper_quad.sh
 
 # 3) HROM mesh preprocessing (splits ROB, ref, and QROB)
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 ./clean.hrom_quad.sh
 bash preprocess.hrom_quad.sh
 
 # 4) Optional: quadratic ROM online
-#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_quad.9999
+#cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_quad.9999
 #./clean_rom_quad_run_outputs.sh
 #bash run_rom_quad.sh
 
 # 5) Quadratic HROM online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_quad.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.hrom_quad.9999.01
 ./clean_hrom_quad_run_outputs.sh
 bash run_hrom_quad.sh
 
 # 6) Quadratic HROM postprocessing
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_quad.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_quad.9999.01
 ./clean_post_hrom_quad_run_outputs.sh
 bash run_post_hrom_quad.sh
 ```
@@ -222,7 +245,7 @@ bash run_post_hrom_quad.sh
 Quick plot vs HDM for this section:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_quad_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
@@ -238,32 +261,32 @@ Current local branch files are set to `NumClusters = 3`.
 
 ```bash
 # 1) Offline local quadratic POD + quadratic manifold data
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_quad.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local_quad.9999.01
 ./clean_offline_local_quad_preprocessing_outputs.sh
 bash run_pod_local_quad.sh
 
 # 2) Build local quadratic ECSW artifacts
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_quad.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local_quad.9999.01
 ./clean_offline_local_quad_hyper_outputs.sh
 bash run_hyper_local_quad.sh
 
 # 3) HROM-local-quad preprocess (splits ROB/ref/QROB for all clusters)
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 ./clean.hrom_local_quad.sh
 bash preprocess.hrom_local_quad.sh
 
 # 4) Optional: local quadratic ROM online
-#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local_quad.9999
+#cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_local_quad.9999
 #./clean_rom_local_quad_run_outputs.sh
 #bash run_rom_local_quad.sh
 
 # 5) Local quadratic HROM online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_local_quad.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.hrom_local_quad.9999.01
 ./clean_hrom_local_quad_run_outputs.sh
 bash run_hrom_local_quad.sh
 
 # 6) Local quadratic HROM postprocessing
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local_quad.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_local_quad.9999.01
 ./clean_post_hrom_local_quad_run_outputs.sh
 bash run_post_hrom_local_quad.sh
 ```
@@ -271,7 +294,7 @@ bash run_post_hrom_local_quad.sh
 Quick plot vs HDM for this section:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_local_quad_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
@@ -289,35 +312,35 @@ ANN branch (requires Torch-enabled AERO-F build):
 # Offline base for ANN
 # Optional: skip run_pod_ann.sh if nonlinearrom/cluster0/state.coords already exists
 # (for example, if this offline folder was already prepared/copied).
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_ann.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_ann.9999.01
 ./clean_offline_preprocessing_outputs.sh
 bash run_pod_ann.sh
 
 # ANN trainer (builds s.coords from state.coords)
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_ann.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_ann.9999.01
 bash run_ann_trainer.sh
 
 # Optional: ROM-ANN online
-#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_ann.9999
+#cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_ann.9999
 #./clean_rom_ann_run_outputs.sh
 #bash run_rom_ann.sh
 
 # ANN hyper artifacts
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_ann.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_ann.9999.01
 ./clean_offline_ann_hyper_outputs.sh
 bash run_hyper_ann.sh
 
 # HROM-ANN preprocess
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 ./clean.hrom_ann.sh
 bash preprocess.hrom_ann.sh
 
 # HROM-ANN online + post
-cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_ann.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.hrom_ann.9999.01
 ./clean_hrom_ann_run_outputs.sh
 bash run_hrom_ann.sh
 
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_ann.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_ann.9999.01
 ./clean_post_hrom_ann_run_outputs.sh
 bash run_post_hrom_ann.sh
 ```
@@ -325,7 +348,7 @@ bash run_post_hrom_ann.sh
 Quick plot vs HDM for this section:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_ann_5_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
@@ -343,36 +366,36 @@ Local ANN workflow (multi-cluster local manifold PROM/HROM):
 
 ```bash
 # 1) Offline local ANN POD base
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_ann.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local_ann.9999.01
 ./clean_offline_local_ann_preprocessing_outputs.sh
 bash run_pod_local_ann.sh
 
 # 2) Train ANN manifolds for all clusters
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_ann.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local_ann.9999.01
 bash run_ann_trainer.sh
 
 # 3) Build local ANN ECSW artifacts
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_ann.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local_ann.9999.01
 ./clean_offline_local_ann_hyper_outputs.sh
 bash run_hyper_local_ann.sh
 
 # 4) HROM-local-ANN preprocess
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 ./clean.hrom_local_ann.sh
 bash preprocess.hrom_local_ann.sh
 
 # 5) Optional: local ANN ROM online
-#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local_ann.9999
+#cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_local_ann.9999
 #./clean_rom_local_ann_run_outputs.sh
 #bash run_rom_local_ann.sh
 
 # 6) Local ANN HROM online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_local_ann.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.hrom_local_ann.9999.01
 ./clean_hrom_local_ann_run_outputs.sh
 bash run_hrom_local_ann.sh
 
 # 7) Local ANN HROM postprocessing
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local_ann.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_local_ann.9999.01
 ./clean_post_hrom_local_ann_run_outputs.sh
 bash run_post_hrom_local_ann.sh
 ```
@@ -380,7 +403,7 @@ bash run_post_hrom_local_ann.sh
 Quick plot vs HDM for this section:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_local_ann_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
@@ -399,31 +422,31 @@ RBF branch (reuses baseline offline POD data):
 ```bash
 # Ensure baseline POD exists
 # Optional: skip run_pod.sh if run.offline.9999.01 already has nonlinearrom/ and references/DEFAULT.PKG
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline.9999.01
 bash run_pod.sh
 
 # Prepare RBF offline folder and train
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_rbf.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_rbf.9999.01
 bash prepare_from_pod_base_rbf.sh
 bash run_rbf_trainer.sh
 bash run_hyper_rbf.sh
 
 # HROM-RBF preprocess
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 ./clean.hrom_rbf.sh
 bash preprocess.hrom_rbf.sh
 
 # Optional: ROM-RBF
-#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_rbf.9999
+#cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_rbf.9999
 #./clean_rom_rbf_run_outputs.sh
 #bash run_rom_rbf.sh
 
 # HROM-RBF + post
-cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_rbf.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.hrom_rbf.9999.01
 ./clean_hrom_rbf_run_outputs.sh
 bash run_hrom_rbf.sh
 
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_rbf.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_rbf.9999.01
 ./clean_post_hrom_rbf_run_outputs.sh
 bash run_post_hrom_rbf.sh
 ```
@@ -431,7 +454,7 @@ bash run_post_hrom_rbf.sh
 Quick plot vs HDM for this section:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_rbf_5_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
@@ -449,36 +472,36 @@ Local RBF workflow (multi-cluster local manifold PROM/HROM):
 
 ```bash
 # 1) Offline local RBF POD base
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_rbf.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local_rbf.9999.01
 ./clean_offline_local_rbf_preprocessing_outputs.sh
 bash run_pod_local_rbf.sh
 
 # 2) Train RBF manifolds for all clusters
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_rbf.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local_rbf.9999.01
 bash run_rbf_trainer.sh
 
 # 3) Build local RBF ECSW artifacts
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_rbf.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local_rbf.9999.01
 ./clean_offline_local_rbf_hyper_outputs.sh
 bash run_hyper_local_rbf.sh
 
 # 4) HROM-local-RBF preprocess
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 ./clean.hrom_local_rbf.sh
 bash preprocess.hrom_local_rbf.sh
 
 # 5) Optional: local RBF ROM online
-#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local_rbf.9999
+#cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_local_rbf.9999
 #./clean_rom_local_rbf_run_outputs.sh
 #bash run_rom_local_rbf.sh
 
 # 6) Local RBF HROM online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_local_rbf.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.hrom_local_rbf.9999.01
 ./clean_hrom_local_rbf_run_outputs.sh
 bash run_hrom_local_rbf.sh
 
 # 7) Local RBF HROM postprocessing
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local_rbf.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_local_rbf.9999.01
 ./clean_post_hrom_local_rbf_run_outputs.sh
 bash run_post_hrom_local_rbf.sh
 ```
@@ -486,7 +509,7 @@ bash run_post_hrom_local_rbf.sh
 Quick plot vs HDM for this section:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_local_rbf_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
@@ -504,31 +527,31 @@ GPR branch (reuses baseline offline POD data):
 ```bash
 # Ensure baseline POD exists
 # Optional: skip run_pod.sh if run.offline.9999.01 already has nonlinearrom/ and references/DEFAULT.PKG
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline.9999.01
 bash run_pod.sh
 
 # Prepare GPR offline folder and train
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_gp.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_gp.9999.01
 bash prepare_from_pod_base_gp.sh
 bash run_gp_trainer.sh
 bash run_hyper_gp.sh
 
 # HROM-GPR preprocess
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 ./clean.hrom_gp.sh
 bash preprocess.hrom_gp.sh
 
 # Optional: ROM-GPR
-#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_gp.9999
+#cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_gp.9999
 #./clean_rom_gp_run_outputs.sh
 #bash run_rom_gp.sh
 
 # HROM-GPR + post
-cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_gp.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.hrom_gp.9999.01
 ./clean_hrom_gp_run_outputs.sh
 bash run_hrom_gp.sh
 
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_gp.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_gp.9999.01
 ./clean_post_hrom_gp_run_outputs.sh
 bash run_post_hrom_gp.sh
 ```
@@ -536,7 +559,7 @@ bash run_post_hrom_gp.sh
 Quick plot vs HDM for this section:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_gpr_5_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
@@ -554,36 +577,36 @@ Local GPR workflow (multi-cluster local manifold PROM/HROM):
 
 ```bash
 # 1) Offline local GPR POD base
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_gp.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local_gp.9999.01
 ./clean_offline_local_gp_preprocessing_outputs.sh
 bash run_pod_local_gp.sh
 
 # 2) Train GPR manifolds for all clusters
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_gp.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local_gp.9999.01
 bash run_gp_trainer.sh
 
 # 3) Build local GPR ECSW artifacts
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline_local_gp.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline_local_gp.9999.01
 ./clean_offline_local_gp_hyper_outputs.sh
 bash run_hyper_local_gp.sh
 
 # 4) HROM-local-GPR preprocess
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 ./clean.hrom_local_gp.sh
 bash preprocess.hrom_local_gp.sh
 
 # 5) Optional: local GPR ROM online
-#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local_gp.9999
+#cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_local_gp.9999
 #./clean_rom_local_gp_run_outputs.sh
 #bash run_rom_local_gp.sh
 
 # 6) Local GPR HROM online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom_local_gp.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.hrom_local_gp.9999.01
 ./clean_hrom_local_gp_run_outputs.sh
 bash run_hrom_local_gp.sh
 
 # 7) Local GPR HROM postprocessing
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local_gp.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_local_gp.9999.01
 ./clean_post_hrom_local_gp_run_outputs.sh
 bash run_post_hrom_local_gp.sh
 ```
@@ -591,7 +614,7 @@ bash run_post_hrom_local_gp.sh
 Quick plot vs HDM for this section:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_local_gpr_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
@@ -607,28 +630,28 @@ Optional section: use this branch as a lower-bound linear comparator against ANN
 
 ```bash
 # Offline POD/hyper data for n=10
-cd /home/kratos/aero-f_rom_turorial/simulations/run.offline.9999_10.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.offline.9999_10.01
 ./clean_offline_preprocessing_outputs.sh
 bash run_pod.sh
 bash run_hyper.sh
 
 # HROM mesh preprocessing for n=10
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 ./clean.hrom_10.sh
 bash preprocess.hrom_10.sh
 
 # Optional: PROM-10 online
-#cd /home/kratos/aero-f_rom_turorial/simulations/run.rom.9999_10
+#cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom.9999_10
 #./clean_rom_run_outputs.sh
 #bash run_rom.sh
 
 # HROM-10 online
-cd /home/kratos/aero-f_rom_turorial/simulations/run.hrom.9999_10.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.hrom.9999_10.01
 ./clean_hrom_run_outputs.sh
 bash run_hrom.sh
 
 # HROM-10 postprocessing
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom.9999_10.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom.9999_10.01
 ./clean_post_hrom_run_outputs.sh
 bash run_post_hrom.sh
 ```
@@ -636,7 +659,7 @@ bash run_post_hrom.sh
 Quick plot vs HDM for this section:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_10_vs_hdm \
   --reference HDM:simulations/run.fom/postpro \
@@ -664,7 +687,7 @@ Legend/style conventions (Burgers-workbench-like):
 Baseline (linear reference):
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag baseline \
   --model ROM:simulations/run.rom.9999/postpro \
@@ -674,7 +697,7 @@ python3 simulations/plot_compare_postpro.py \
 HROM-family comparison with HDM reference:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag hprom_only \
   --reference HDM:simulations/run.fom/postpro \
@@ -688,7 +711,7 @@ python3 simulations/plot_compare_postpro.py \
 ROM-family comparison with HDM reference:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 python3 simulations/plot_compare_postpro.py \
   --tag prom_only \
   --reference HDM:simulations/run.fom/postpro \
@@ -702,7 +725,7 @@ python3 simulations/plot_compare_postpro.py \
 Regenerate all key comparison plots from existing postpro folders:
 
 ```bash
-cd /home/kratos/aero-f_rom_turorial
+cd /home/sares/aero-f-fpc-rom-workbench
 
 python3 simulations/plot_compare_postpro.py --tag hprom_35_vs_hdm --reference HDM:simulations/run.fom/postpro --model HPROM-35:simulations/run.post_hrom.9999.01/postpro
 python3 simulations/plot_compare_postpro.py --tag hprom_10_vs_hdm --reference HDM:simulations/run.fom/postpro --model HPROM-10:simulations/run.post_hrom.9999_10.01/postpro
@@ -943,71 +966,71 @@ Run these after the corresponding ROM/HROM simulation has produced `results/*.bi
 
 ```bash
 # HDM
-cd /home/kratos/aero-f_rom_turorial/simulations/run.fom
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.fom
 bash postprocess_paraview.sh
 
 # Optional: PROM linear (n=35)
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom.9999
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom.9999
 bash postprocess_paraview.sh
 
 # Optional: PROM linear (n=10)
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom.9999_10
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom.9999_10
 bash postprocess_paraview.sh
 
 # Optional: PROM quadratic
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_quad.9999
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_quad.9999
 bash postprocess_paraview.sh
 
 # Optional: PROM local linear
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local.9999
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_local.9999
 bash postprocess_paraview.sh
 
 # Optional: PROM local quadratic
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_local_quad.9999
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_local_quad.9999
 bash postprocess_paraview.sh
 
 # Optional: PROM-ANN
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_ann.9999
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_ann.9999
 bash postprocess_paraview.sh
 
 # Optional: PROM-RBF
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_rbf.9999
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_rbf.9999
 bash postprocess_paraview.sh
 
 # Optional: PROM-GPR
-cd /home/kratos/aero-f_rom_turorial/simulations/run.rom_gp.9999
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.rom_gp.9999
 bash postprocess_paraview.sh
 
 # HROM linear (n=35) post folder
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom.9999.01
 bash postprocess_paraview.sh
 
 # HROM linear (n=10) post folder
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom.9999_10.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom.9999_10.01
 bash postprocess_paraview.sh
 
 # HROM quadratic post folder
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_quad.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_quad.9999.01
 bash postprocess_paraview.sh
 
 # HROM local linear post folder
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_local.9999.01
 bash postprocess_paraview.sh
 
 # HROM local quadratic post folder
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_local_quad.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_local_quad.9999.01
 bash postprocess_paraview.sh
 
 # HROM-ANN post folder
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_ann.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_ann.9999.01
 bash postprocess_paraview.sh
 
 # HROM-RBF post folder
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_rbf.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_rbf.9999.01
 bash postprocess_paraview.sh
 
 # HROM-GPR post folder
-cd /home/kratos/aero-f_rom_turorial/simulations/run.post_hrom_gp.9999.01
+cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.post_hrom_gp.9999.01
 bash postprocess_paraview.sh
 ```
 

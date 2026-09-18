@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/env.sh"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLUSTER_DIR="$SCRIPT_DIR/nonlinearrom/cluster0"
 TRAINERS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/trainers"
@@ -49,7 +51,7 @@ fi
 
 echo "Using trainer: $GP_TRAINER (p=$GP_INPUT_SIZE, s=$cluster_output)"
 cd "$CLUSTER_DIR"
-python3 "$GP_TRAINER" --data_file s.coords --input_size "$GP_INPUT_SIZE" --output_size "$cluster_output" |& tee log_gp_training.out
+"$PYTHON" "$GP_TRAINER" --data_file s.coords --input_size "$GP_INPUT_SIZE" --output_size "$cluster_output" |& tee log_gp_training.out
 
 for req in gp_precomputations.txt gp_xTrain.txt gp_stdscaling.txt gp_hyper.txt; do
   if [[ ! -f "$req" ]]; then

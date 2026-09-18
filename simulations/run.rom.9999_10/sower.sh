@@ -1,7 +1,8 @@
 #!/bin/bash
 
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/env.sh"
+
 # Sower executable
-SOWER_EXECUTABLE=/home/kratos/aero-f_rom_turorial/sower
 
 # Postprocess fluid solution
 $SOWER_EXECUTABLE -fluid -merge -con ../../data/OUTPUT.con -mesh ../../data/OUTPUT.msh \

@@ -1,5 +1,5 @@
-AEROF=/home/kratos/aero-f/build_full/bin/aerof.opt
-NP=8 # number of mpi processes
+
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/env.sh"
 
 ./clean_fom_run_outputs.sh
 
