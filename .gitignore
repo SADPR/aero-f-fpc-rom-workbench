@@ -76,8 +76,9 @@ xp2exo_bundle.tgz
 # Downloaded external reference material
 reference/**
 
-# Per-stage logs written by run_full_pipeline.sh
-pipeline_logs/
+# Per-stage logs written by run_full_pipeline.sh. The trailing * matters:
+# "pipeline_logs/" alone would not match an archived pipeline_logs_run1/.
+pipeline_logs*/
 
 # Python bytecode
 __pycache__/

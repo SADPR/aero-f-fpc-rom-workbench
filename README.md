@@ -110,6 +110,24 @@ cd /home/sares/aero-f-fpc-rom-workbench/simulations/run.fom
 bash run_fom.sh
 ```
 
+### Running everything
+
+`run_full_pipeline.sh` drives the FOM and all eleven ROM/HROM families in
+dependency order, reproducing the per-section sequences below. Each stage logs
+to `pipeline_logs/` and records OK/FAIL in a summary, and a failing stage
+aborts only its own family, so one invocation reports the state of all of them.
+
+```bash
+bash run_full_pipeline.sh                 # everything
+bash run_full_pipeline.sh linear ann      # selected families
+```
+
+Mesh preprocessing and the startup run are not included, since they are shared
+by every family and only need doing once.
+
+The remaining sections document each family's stages individually, for running
+them by hand.
+
 ## Linear PROM
 
 Reference linear workflow (default retained size in this branch):
